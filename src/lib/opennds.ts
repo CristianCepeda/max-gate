@@ -1,4 +1,4 @@
-import { createHash } from 'crypto';
+import { createHash } from "crypto";
 
 export interface OpenNDSParams {
   hid: string;
@@ -24,14 +24,15 @@ export interface OpenNDSParams {
  *  originurl=http://example.com, clientif=br-lan"
  */
 export function decodeFASParams(fas: string): OpenNDSParams {
-  const decoded = Buffer.from(fas, 'base64').toString('utf-8');
+  const decoded = Buffer.from(fas, "base64").toString("utf-8");
+  console.log("RAW DECODED FAS STRING:", decoded);
 
   // Split on comma-space, ampersand, or newline — handle all openNDS variants
   const pairs = decoded.split(/,\s*|\n|&/);
 
   const params: Record<string, string> = {};
   for (const pair of pairs) {
-    const eq = pair.indexOf('=');
+    const eq = pair.indexOf("=");
     if (eq === -1) continue;
     const key = pair.slice(0, eq).trim();
     const value = pair.slice(eq + 1).trim();
@@ -39,14 +40,14 @@ export function decodeFASParams(fas: string): OpenNDSParams {
   }
 
   return {
-    hid: params.hid ?? '',
-    clientip: params.clientip ?? '',
-    clientmac: params.clientmac ?? '',
-    gatewayname: params.gatewayname ?? '',
-    gatewayaddress: params.gatewayaddress ?? '',
-    authdir: params.authdir ?? 'opennds_auth',
-    originurl: params.originurl ?? '',
-    clientif: params.clientif ?? '',
+    hid: params.hid ?? "",
+    clientip: params.clientip ?? "",
+    clientmac: params.clientmac ?? "",
+    gatewayname: params.gatewayname ?? "",
+    gatewayaddress: params.gatewayaddress ?? "",
+    authdir: params.authdir ?? "opennds_auth",
+    originurl: params.originurl ?? "",
+    clientif: params.clientif ?? "",
   };
 }
 
@@ -59,5 +60,7 @@ export function decodeFASParams(fas: string): OpenNDSParams {
  * receive internet access. Uses Node.js native crypto, no third-party deps.
  */
 export function computeRHID(hid: string, faskey: string): string {
-  return createHash('sha256').update(hid + faskey).digest('hex');
+  return createHash("sha256")
+    .update(hid + faskey)
+    .digest("hex");
 }
