@@ -99,6 +99,8 @@ export async function POST(request: Request) {
     `http://${ndsParams.gatewayaddress}/${ndsParams.authdir}` +
     `?rhid=${rhid}&redir=${encodeURIComponent(successUrl)}`;
 
+  console.log(`[MaxGate] redirectUrl slug=${slug} gatewayaddress=${ndsParams.gatewayaddress} authdir=${ndsParams.authdir} url=${redirectUrl}`);
+
   // 6. Return redirect URL to the client
   return NextResponse.json({ redirectUrl });
 }
