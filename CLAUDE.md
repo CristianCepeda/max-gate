@@ -28,7 +28,7 @@ There are no tests currently. TypeScript is checked as part of `npm run build`.
 
 The auth flow is:
 
-1. Router → `portal.maxmarketingfirm.com/{slug}?fas=<base64>` (splash page)
+1. Router → `gate.maxmarketingfirm.com/{slug}?fas=<base64>` (splash page)
 2. Customer submits form → `POST /api/connect`
 3. API decodes the `fas` param, fires GHL push (async, non-blocking), computes `rhid = sha256(hid + faskey)`, returns `redirectUrl`
 4. Client browser → `http://{gatewayaddress}/{authdir}?rhid={rhid}&redir={successUrl}` (grants WiFi)
@@ -55,11 +55,11 @@ Leads are **never stored in Supabase** — all lead data goes to GoHighLevel onl
 
 ## Environment variables
 
-| Variable                               | Used in                                     |
-| -------------------------------------- | ------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | `lib/supabase.ts`                           |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | (available client-side, not currently used) |
-| `SUPABASE_SECRET_KEY`                  | `lib/supabase.ts` — server only             |
+| Variable                               | Used in                                                                                                          |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | `lib/supabase.ts`                                                                                                |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | (available client-side, not currently used)                                                                      |
+| `SUPABASE_SECRET_KEY`                  | `lib/supabase.ts` — server only                                                                                  |
 | `GHL_PRIVATE_TOKEN`                    | `lib/ghl.ts` — server only; Private Integration token with `contacts.write` and `contacts/workflow.write` scopes |
 
 Copy `.env.local` and fill in real values. The `businesses` table in Supabase has RLS enabled; the secret key bypasses it.
@@ -89,4 +89,4 @@ Then visit: `http://localhost:3000/test-business?fas=<output>`
 
 - The splash page loads **before the customer has internet access**. External resources (fonts, images, CDNs) must be in the router's walled garden or bundled. Inter font is loaded via `next/font/google` which self-hosts it at build time — safe.
 - Captive portal popup browsers (iOS WebKit, Android mini-browser) are limited. Keep client-side JS minimal.
-- The `PORTAL_BASE` constant in `api/connect/route.ts` is hardcoded to `https://portal.maxmarketingfirm.com` — update if the domain changes.
+- The `PORTAL_BASE` constant in `api/connect/route.ts` is hardcoded to `https://gate.maxmarketingfirm.com` — update if the domain changes.

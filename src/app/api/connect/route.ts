@@ -1,33 +1,51 @@
-import { NextResponse } from 'next/server';
-import { getBusinessBySlug } from '@/lib/supabase';
-import { decodeFASParams, computeRHID } from '@/lib/opennds';
-import { pushToGHL } from '@/lib/ghl';
-import { isValidEmail, normalizePhone } from '@/lib/utils';
+import { NextResponse } from "next/server";
+import { getBusinessBySlug } from "@/lib/supabase";
+import { decodeFASParams, computeRHID } from "@/lib/opennds";
+import { pushToGHL } from "@/lib/ghl";
+import { isValidEmail, normalizePhone } from "@/lib/utils";
 
-const PORTAL_BASE = 'https://portal.maxmarketingfirm.com';
+const PORTAL_BASE = "https://gate.maxmarketingfirm.com";
 
 export async function POST(request: Request) {
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body" },
+      { status: 400 },
+    );
   }
 
   const { name, email, phone, slug, fas } =
-    (body as { name?: string; email?: string; phone?: string; slug?: string; fas?: string }) ?? {};
+    (body as {
+      name?: string;
+      email?: string;
+      phone?: string;
+      slug?: string;
+      fas?: string;
+    }) ?? {};
 
   // Basic validation
   if (!name?.trim() || !email?.trim() || !phone?.trim() || !slug?.trim()) {
-    return NextResponse.json({ error: 'name, email, phone, and slug are required' }, { status: 400 });
+    return NextResponse.json(
+      { error: "name, email, phone, and slug are required" },
+      { status: 400 },
+    );
   }
 
   if (!isValidEmail(email.trim())) {
-    return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid email address" },
+      { status: 400 },
+    );
   }
 
   if (!fas) {
-    return NextResponse.json({ error: 'Missing FAS parameter' }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing FAS parameter" },
+      { status: 400 },
+    );
   }
 
   // 1. Decode openNDS FAS params
@@ -36,20 +54,26 @@ export async function POST(request: Request) {
     ndsParams = decodeFASParams(fas);
   } catch (err) {
     console.error(`[MaxGate] FAS decode failed slug=${slug}`, err);
-    return NextResponse.json({ error: 'Invalid FAS parameter' }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid FAS parameter" },
+      { status: 400 },
+    );
   }
 
   if (!ndsParams.hid || !ndsParams.gatewayaddress || !ndsParams.authdir) {
     return NextResponse.json(
-      { error: 'FAS parameter is missing required fields (hid, gatewayaddress, authdir)' },
-      { status: 400 }
+      {
+        error:
+          "FAS parameter is missing required fields (hid, gatewayaddress, authdir)",
+      },
+      { status: 400 },
     );
   }
 
   // 2. Load business config from Supabase
   const business = await getBusinessBySlug(slug);
   if (!business) {
-    return NextResponse.json({ error: 'Business not found' }, { status: 404 });
+    return NextResponse.json({ error: "Business not found" }, { status: 404 });
   }
 
   const normalizedPhone = normalizePhone(phone.trim());
@@ -58,11 +82,11 @@ export async function POST(request: Request) {
   pushToGHL(
     business,
     { name: name.trim(), email: email.trim(), phone: normalizedPhone },
-    ndsParams
+    ndsParams,
   ).catch((err: unknown) => {
     console.error(
       `[MaxGate GHL Push Failed] business=${slug} email=${email.trim()}`,
-      err instanceof Error ? err.message : err
+      err instanceof Error ? err.message : err,
     );
   });
 
