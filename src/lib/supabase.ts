@@ -1,19 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Business } from '@/types/business';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY!;
+let _supabaseAdmin: ReturnType<typeof createClient> | null = null;
 
-// Secret key client — bypasses RLS. Only used server-side.
-export const supabaseAdmin = createClient(supabaseUrl, supabaseSecretKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
+function getSupabaseAdmin() {
+  if (!_supabaseAdmin) {
+    _supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SECRET_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+  }
+  return _supabaseAdmin;
+}
 
 export async function getBusinessBySlug(slug: string): Promise<Business | null> {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await getSupabaseAdmin()
     .from('businesses')
     .select('*')
     .eq('slug', slug)

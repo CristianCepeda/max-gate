@@ -60,7 +60,7 @@ Leads are **never stored in Supabase** — all lead data goes to GoHighLevel onl
 | `NEXT_PUBLIC_SUPABASE_URL`             | `lib/supabase.ts`                           |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | (available client-side, not currently used) |
 | `SUPABASE_SECRET_KEY`                  | `lib/supabase.ts` — server only             |
-| `GHL_AGENCY_API_KEY`                   | `lib/ghl.ts` — server only                  |
+| `GHL_PRIVATE_TOKEN`                    | `lib/ghl.ts` — server only; Private Integration token with `contacts.write` and `contacts/workflow.write` scopes |
 
 Copy `.env.local` and fill in real values. The `businesses` table in Supabase has RLS enabled; the secret key bypasses it.
 
