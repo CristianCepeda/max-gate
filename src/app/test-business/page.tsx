@@ -13,8 +13,11 @@ export default async function TestFAS({
 
   // Build the URL that grants WiFi access
   const successUrl = "https://gate.maxmarketingfirm.com/test-business/success";
+
+  // Build the URL that grants WiFi access
+  const separator = authaction.includes("?") ? "&" : "?";
   const grantUrl = authaction
-    ? `${authaction}?tok=${tok}&redir=${encodeURIComponent(successUrl)}`
+    ? `${authaction}${separator}tok=${tok}&redir=${encodeURIComponent(successUrl)}`
     : "";
 
   return (
