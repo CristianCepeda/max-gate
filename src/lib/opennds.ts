@@ -64,3 +64,16 @@ export function computeRHID(hid: string, faskey: string): string {
     .update(hid + faskey)
     .digest("hex");
 }
+
+/**
+ * Verifies the sha256 parameter sent by openNDS at fas_secure_enabled=1.
+ *
+ * The router computes sha256(faskey) and appends it as ?sha256=<hex> to the
+ * FAS URL. We independently compute the same hash from our stored faskey and
+ * compare. A mismatch means the request did not come from a router configured
+ * with our faskey — reject it.
+ */
+export function verifyFASKeyHash(faskey: string, receivedHash: string): boolean {
+  const expected = createHash("sha256").update(faskey).digest("hex");
+  return expected === receivedHash;
+}

@@ -10,7 +10,7 @@ const DEFAULT_TERMS =
 interface CaptureFormProps {
   slug: string;
   fas: string;
-  businessName: string;
+  sha256: string;
   welcomeMessage: string;
   termsText: string | null;
   primaryColor: string;
@@ -21,7 +21,7 @@ type FormState = 'idle' | 'loading' | 'error';
 export default function CaptureForm({
   slug,
   fas,
-  businessName,
+  sha256,
   welcomeMessage,
   termsText,
   primaryColor,
@@ -64,7 +64,7 @@ export default function CaptureForm({
       const res = await fetch('/api/connect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), phone, slug, fas }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), phone, slug, fas, sha256 }),
       });
 
       const data = await res.json();

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getBusinessBySlug } from "@/lib/supabase";
-import { decodeFASParams, computeRHID } from "@/lib/opennds";
+import { decodeFASParams, computeRHID, verifyFASKeyHash } from "@/lib/opennds";
 import { pushToGHL } from "@/lib/ghl";
 import { isValidEmail, normalizePhone } from "@/lib/utils";
 
@@ -17,13 +17,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const { name, email, phone, slug, fas } =
+  const { name, email, phone, slug, fas, sha256 } =
     (body as {
       name?: string;
       email?: string;
       phone?: string;
       slug?: string;
       fas?: string;
+      sha256?: string;
     }) ?? {};
 
   // Basic validation
@@ -44,6 +45,13 @@ export async function POST(request: Request) {
   if (!fas) {
     return NextResponse.json(
       { error: "Missing FAS parameter" },
+      { status: 400 },
+    );
+  }
+
+  if (!sha256) {
+    return NextResponse.json(
+      { error: "Missing sha256 parameter" },
       { status: 400 },
     );
   }
@@ -74,6 +82,12 @@ export async function POST(request: Request) {
   const business = await getBusinessBySlug(slug);
   if (!business) {
     return NextResponse.json({ error: "Business not found" }, { status: 404 });
+  }
+
+  // Verify the router's identity — sha256 must equal sha256(faskey)
+  if (!verifyFASKeyHash(business.faskey, sha256)) {
+    console.error(`[MaxGate] FAS key hash mismatch slug=${slug}`);
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
   const normalizedPhone = normalizePhone(phone.trim());
