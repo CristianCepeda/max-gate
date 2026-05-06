@@ -76,12 +76,12 @@ export default function CaptureForm({
   return (
     <form onSubmit={handleSubmit} noValidate>
       {/* Welcome message */}
-      <p className="text-center text-gray-500 text-sm mb-6">{welcomeMessage}</p>
+      <p className="text-center text-zinc-400 text-sm mb-6">{welcomeMessage}</p>
 
       <div className="space-y-4">
         {/* Full Name */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="name" className="block text-sm font-medium text-zinc-300 mb-1">
             Full Name
           </label>
           <input
@@ -92,7 +92,7 @@ export default function CaptureForm({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Jane Smith"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition-shadow"
+            className="w-full px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-800 text-white placeholder-zinc-500 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition-shadow"
             style={{ '--tw-ring-color': accent } as React.CSSProperties}
             disabled={isLoading}
           />
@@ -100,7 +100,7 @@ export default function CaptureForm({
 
         {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="email" className="block text-sm font-medium text-zinc-300 mb-1">
             Email Address
           </label>
           <input
@@ -112,7 +112,7 @@ export default function CaptureForm({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="jane@example.com"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition-shadow"
+            className="w-full px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-800 text-white placeholder-zinc-500 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition-shadow"
             style={{ '--tw-ring-color': accent } as React.CSSProperties}
             disabled={isLoading}
           />
@@ -130,7 +130,7 @@ export default function CaptureForm({
         {formState === 'error' && errorMsg && (
           <div
             role="alert"
-            className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3"
+            className="text-sm text-red-400 bg-red-950 border border-red-800 rounded-xl px-4 py-3"
           >
             {errorMsg}
           </div>
@@ -173,7 +173,7 @@ export default function CaptureForm({
         </button>
 
         {/* Trust signal */}
-        <p className="text-center text-xs text-gray-400 flex items-center justify-center gap-1">
+        <p className="text-center text-xs text-zinc-500 flex items-center justify-center gap-1">
           <svg
             className="w-3 h-3"
             fill="none"

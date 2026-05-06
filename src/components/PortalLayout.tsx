@@ -1,5 +1,5 @@
-import Image from 'next/image';
-import { safeColor } from '@/lib/utils';
+import Image from "next/image";
+import { safeColor } from "@/lib/utils";
 
 interface PortalLayoutProps {
   businessName: string;
@@ -14,14 +14,15 @@ export default function PortalLayout({
   primaryColor,
   children,
 }: PortalLayoutProps) {
-  const accent = safeColor(primaryColor, '#8C9BBA');
+  const accent = safeColor(primaryColor, "#8C9BBA");
+  console.log("PortalLayout render", { businessName, logoUrl, primaryColor });
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-gradient-to-br from-slate-100 to-slate-200">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-zinc-950">
       <div className="w-full max-w-sm">
         {/* Card */}
         <div
-          className="bg-white rounded-2xl shadow-lg overflow-hidden"
+          className="bg-zinc-900 rounded-2xl shadow-2xl overflow-hidden border border-zinc-800"
           style={{ borderTop: `4px solid ${accent}` }}
         >
           {/* Header */}
@@ -33,6 +34,7 @@ export default function PortalLayout({
                   alt={`${businessName} logo`}
                   width={120}
                   height={60}
+                  style={{ width: "auto" }}
                   className="object-contain max-h-16"
                   priority
                 />
@@ -45,7 +47,7 @@ export default function PortalLayout({
                 {businessName.charAt(0).toUpperCase()}
               </div>
             )}
-            <h1 className="text-xl font-bold text-gray-900">{businessName}</h1>
+            <h1 className="text-xl font-bold text-white">{businessName}</h1>
           </div>
 
           {/* Content */}
@@ -53,9 +55,9 @@ export default function PortalLayout({
         </div>
 
         {/* Footer */}
-        <p className="mt-6 text-center text-xs text-gray-400">
-          Powered by{' '}
-          <span className="font-medium text-gray-500">Max Marketing Firm</span>
+        <p className="mt-6 text-center text-xs text-zinc-600">
+          Powered by{" "}
+          <span className="font-medium text-zinc-500">Max Marketing Firm</span>
         </p>
       </div>
     </div>
