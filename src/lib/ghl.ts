@@ -7,7 +7,6 @@ const GHL_API_VERSION = "2021-07-28";
 export interface LeadData {
   name: string;
   email: string;
-  phone: string;
 }
 
 export async function pushToGHL(
@@ -33,7 +32,6 @@ export async function pushToGHL(
       firstName,
       lastName,
       email: leadData.email,
-      phone: leadData.phone,
       locationId: business.ghl_location_id,
       tags: [business.ghl_tag, business.slug],
       source: "MaxGate Portal",

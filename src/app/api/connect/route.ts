@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getBusinessBySlug } from "@/lib/supabase";
-import { decodeFASParams, computeRHID, verifyFASKeyHash } from "@/lib/opennds";
+import { computeTok, decodeFASParams } from "@/lib/opennds";
 import { pushToGHL } from "@/lib/ghl";
-import { isValidEmail, normalizePhone } from "@/lib/utils";
+import { isValidEmail } from "@/lib/utils";
 
 const PORTAL_BASE = "https://gate.maxmarketingfirm.com";
 
@@ -17,20 +17,17 @@ export async function POST(request: Request) {
     );
   }
 
-  const { name, email, phone, slug, fas, sha256 } =
+  const { name, email, slug, fas } =
     (body as {
       name?: string;
       email?: string;
-      phone?: string;
       slug?: string;
       fas?: string;
-      sha256?: string;
     }) ?? {};
 
-  // Basic validation
-  if (!name?.trim() || !email?.trim() || !phone?.trim() || !slug?.trim()) {
+  if (!name?.trim() || !email?.trim() || !slug?.trim()) {
     return NextResponse.json(
-      { error: "name, email, phone, and slug are required" },
+      { error: "name, email, and slug are required" },
       { status: 400 },
     );
   }
@@ -49,14 +46,6 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!sha256) {
-    return NextResponse.json(
-      { error: "Missing sha256 parameter" },
-      { status: 400 },
-    );
-  }
-
-  // 1. Decode openNDS FAS params
   let ndsParams;
   try {
     ndsParams = decodeFASParams(fas);
@@ -68,34 +57,23 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!ndsParams.hid || !ndsParams.gatewayaddress || !ndsParams.authdir) {
+  if (!ndsParams.hid || !ndsParams.gatewayaddress) {
     return NextResponse.json(
       {
-        error:
-          "FAS parameter is missing required fields (hid, gatewayaddress, authdir)",
+        error: "FAS parameter is missing required fields (hid, gatewayaddress)",
       },
       { status: 400 },
     );
   }
 
-  // 2. Load business config from Supabase
   const business = await getBusinessBySlug(slug);
   if (!business) {
     return NextResponse.json({ error: "Business not found" }, { status: 404 });
   }
 
-  // Verify the router's identity — sha256 must equal sha256(faskey)
-  if (!verifyFASKeyHash(business.faskey, sha256)) {
-    console.error(`[MaxGate] FAS key hash mismatch slug=${slug}`);
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
-
-  const normalizedPhone = normalizePhone(phone.trim());
-
-  // 3. Fire-and-forget GHL push — never block WiFi grant on this
   pushToGHL(
     business,
-    { name: name.trim(), email: email.trim(), phone: normalizedPhone },
+    { name: name.trim(), email: email.trim() },
     ndsParams,
   ).catch((err: unknown) => {
     console.error(
@@ -104,19 +82,18 @@ export async function POST(request: Request) {
     );
   });
 
-  // 4. Compute the openNDS return hash (security-critical)
-  const rhid = computeRHID(ndsParams.hid, business.faskey);
+  // tok = sha256(hid + faskey) — faskey is loaded per-business from Supabase
+  const tok = computeTok(ndsParams.hid, business.faskey);
 
-  // 5. Build the WiFi grant redirect URL
+  // openNDS FAS level 1 grant URL: uses ?tok= and the /opennds_auth/ path
   const successUrl = `${PORTAL_BASE}/${slug}/success`;
   const redirectUrl =
-    `http://${ndsParams.gatewayaddress}/${ndsParams.authdir}/` +
-    `?rhid=${rhid}&redir=${encodeURIComponent(successUrl)}`;
+    `http://${ndsParams.gatewayaddress}/opennds_auth/` +
+    `?tok=${tok}&redir=${encodeURIComponent(successUrl)}`;
 
   console.log(
-    `[MaxGate] redirectUrl slug=${slug} gatewayaddress=${ndsParams.gatewayaddress} authdir=${ndsParams.authdir} url=${redirectUrl}`,
+    `[MaxGate] redirectUrl slug=${slug} gatewayaddress=${ndsParams.gatewayaddress} url=${redirectUrl}`,
   );
 
-  // 6. Return redirect URL to the client
   return NextResponse.json({ redirectUrl });
 }

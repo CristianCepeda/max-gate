@@ -4,30 +4,33 @@ export interface OpenNDSParams {
   hid: string;
   clientip: string;
   clientmac: string;
+  client_type: string;
   gatewayname: string;
+  gatewayurl: string;
+  version: string;
   gatewayaddress: string;
-  authdir: string;
+  gatewaymac: string;
   originurl: string;
   clientif: string;
+  themespec: string;
 }
 
 /**
- * Decodes an openNDS FAS secure level 1 parameter string.
+ * Decodes an openNDS FAS Level 1 base64 parameter string into key/value pairs.
  *
- * The `fas` query param is base64-encoded. When decoded it contains
- * key=value pairs separated by ", " (comma-space) or "&" or newlines.
- * We support all common delimiters for robustness across openNDS versions.
+ * openNDS encodes the FAS payload as base64. When decoded, it contains
+ * key=value pairs. The delimiter varies by openNDS version:
+ *   - v9+: ", " (comma-space)
+ *   - older: "&" or newline
+ * The regex handles all three so this works regardless of router firmware version.
  *
- * Example decoded:
- * "hid=abc123, clientip=192.168.8.100, clientmac=AA:BB:CC:DD:EE:FF,
- *  gatewayname=MaxGate, gatewayaddress=192.168.8.1, authdir=opennds_auth,
- *  originurl=http://example.com, clientif=br-lan"
+ * Example decoded string:
+ *   "hid=abc123, clientip=192.168.8.100, gatewayaddress=192.168.8.1, ..."
  */
 export function decodeFASParams(fas: string): OpenNDSParams {
   const decoded = Buffer.from(fas, "base64").toString("utf-8");
-  console.log("RAW DECODED FAS STRING:", decoded);
 
-  // Split on comma-space, ampersand, or newline — handle all openNDS variants
+  // Split on comma-space, ampersand, or newline to handle all openNDS variants
   const pairs = decoded.split(/,\s*|\n|&/);
 
   const params: Record<string, string> = {};
@@ -43,37 +46,28 @@ export function decodeFASParams(fas: string): OpenNDSParams {
     hid: params.hid ?? "",
     clientip: params.clientip ?? "",
     clientmac: params.clientmac ?? "",
+    client_type: params.client_type ?? "",
     gatewayname: params.gatewayname ?? "",
+    gatewayurl: params.gatewayurl ?? "",
+    version: params.version ?? "",
     gatewayaddress: params.gatewayaddress ?? "",
-    authdir: params.authdir ?? "opennds_auth",
+    gatewaymac: params.gatewaymac ?? "",
     originurl: params.originurl ?? "",
     clientif: params.clientif ?? "",
+    themespec: params.themespec ?? "",
   };
 }
 
 /**
- * Computes the return hash ID required by openNDS FAS authentication.
+ * Computes the auth token required by openNDS to grant WiFi access.
  *
- * rhid = sha256(hid + faskey)
+ * tok = sha256(hid + faskey)
  *
- * This is security-critical — an incorrect hash means the customer won't
- * receive internet access. Uses Node.js native crypto, no third-party deps.
+ * This matches the openNDS FAS Level 1 spec. The faskey must match the value
+ * configured on the router — a mismatch means the customer won't get internet.
  */
-export function computeRHID(hid: string, faskey: string): string {
+export function computeTok(hid: string, faskey: string): string {
   return createHash("sha256")
     .update(hid + faskey)
     .digest("hex");
-}
-
-/**
- * Verifies the sha256 parameter sent by openNDS at fas_secure_enabled=1.
- *
- * The router computes sha256(faskey) and appends it as ?sha256=<hex> to the
- * FAS URL. We independently compute the same hash from our stored faskey and
- * compare. A mismatch means the request did not come from a router configured
- * with our faskey — reject it.
- */
-export function verifyFASKeyHash(faskey: string, receivedHash: string): boolean {
-  const expected = createHash("sha256").update(faskey).digest("hex");
-  return expected === receivedHash;
 }

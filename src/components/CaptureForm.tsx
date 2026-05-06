@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import TermsCheckbox from '@/components/TermsCheckbox';
 import { safeColor } from '@/lib/utils';
 
@@ -10,7 +10,6 @@ const DEFAULT_TERMS =
 interface CaptureFormProps {
   slug: string;
   fas: string;
-  sha256: string;
   welcomeMessage: string;
   termsText: string | null;
   primaryColor: string;
@@ -21,7 +20,6 @@ type FormState = 'idle' | 'loading' | 'error';
 export default function CaptureForm({
   slug,
   fas,
-  sha256,
   welcomeMessage,
   termsText,
   primaryColor,
@@ -30,23 +28,15 @@ export default function CaptureForm({
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [formState, setFormState] = useState<FormState>('idle');
   const [errorMsg, setErrorMsg] = useState('');
-
-  const formatPhone = useCallback((value: string) => {
-    const digits = value.replace(/\D/g, '').slice(0, 10);
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (formState === 'loading') return;
 
-    if (!name.trim() || !email.trim() || !phone.trim()) {
+    if (!name.trim() || !email.trim()) {
       setErrorMsg('Please fill in all fields.');
       setFormState('error');
       return;
@@ -64,7 +54,7 @@ export default function CaptureForm({
       const res = await fetch('/api/connect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), phone, slug, fas, sha256 }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), slug, fas }),
       });
 
       const data = await res.json();
@@ -122,26 +112,6 @@ export default function CaptureForm({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="jane@example.com"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition-shadow"
-            style={{ '--tw-ring-color': accent } as React.CSSProperties}
-            disabled={isLoading}
-          />
-        </div>
-
-        {/* Phone */}
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-            Phone Number
-          </label>
-          <input
-            id="phone"
-            type="tel"
-            autoComplete="tel"
-            inputMode="tel"
-            required
-            value={phone}
-            onChange={(e) => setPhone(formatPhone(e.target.value))}
-            placeholder="(555) 555-5555"
             className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition-shadow"
             style={{ '--tw-ring-color': accent } as React.CSSProperties}
             disabled={isLoading}
