@@ -29,9 +29,9 @@ export default async function TestFAS({
   const hid = params.hid || "";
   const gatewayaddress = params.gatewayaddress || "";
 
-  console.log("=== FAS LEVEL 1 PARAMS ===");
-  console.log("Raw fas:", fasParam);
-  console.log("Decoded:", JSON.stringify(params, null, 2));
+  // console.log("=== FAS LEVEL 1 PARAMS ===");
+  // console.log("Raw fas:", fasParam);
+  // console.log("Decoded:", JSON.stringify(params, null, 2));
 
   // Compute the auth token: sha256(hid + faskey)
   // This exactly matches the PHP example: $tok = hash('sha256', $hid.$key);

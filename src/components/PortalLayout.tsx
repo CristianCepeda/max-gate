@@ -15,7 +15,6 @@ export default function PortalLayout({
   children,
 }: PortalLayoutProps) {
   const accent = safeColor(primaryColor, "#8C9BBA");
-  console.log("PortalLayout render", { businessName, logoUrl, primaryColor });
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-zinc-950">

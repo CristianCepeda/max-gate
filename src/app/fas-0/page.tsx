@@ -5,8 +5,8 @@ export default async function TestFAS({
 }) {
   const params = await searchParams;
 
-  console.log("=== FAS LEVEL 0 PARAMS ===");
-  console.log(JSON.stringify(params, null, 2));
+  // console.log("=== FAS LEVEL 0 PARAMS ===");
+  // console.log(JSON.stringify(params, null, 2));
 
   const authaction = params.authaction || "";
   const tok = params.tok || "";

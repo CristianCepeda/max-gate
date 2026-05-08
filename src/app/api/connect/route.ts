@@ -91,9 +91,9 @@ export async function POST(request: Request) {
     `http://${ndsParams.gatewayaddress}/opennds_auth/` +
     `?tok=${tok}&redir=${encodeURIComponent(successUrl)}`;
 
-  console.log(
-    `[MaxGate] redirectUrl slug=${slug} gatewayaddress=${ndsParams.gatewayaddress} url=${redirectUrl}`,
-  );
+  // console.log(
+  //   `[MaxGate] redirectUrl slug=${slug} gatewayaddress=${ndsParams.gatewayaddress} url=${redirectUrl}`,
+  // );
 
   return NextResponse.json({ redirectUrl });
 }

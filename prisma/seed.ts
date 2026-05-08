@@ -28,7 +28,7 @@ async function main() {
   });
 
   await prisma.$disconnect();
-  console.log("Seeded: test-business");
+  // console.log("Seeded: test-business");
 }
 
 main();
