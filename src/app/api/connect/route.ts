@@ -72,16 +72,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Business not found" }, { status: 404 });
   }
 
-  // pushToGHL(
-  //   business,
-  //   { name: name.trim(), email: email.trim() },
-  //   ndsParams,
-  // ).catch((err: unknown) => {
-  //   console.error(
-  //     `[MaxGate GHL Push Failed] business=${slug} email=${email.trim()}`,
-  //     err instanceof Error ? err.message : err,
-  //   );
-  // });
+  pushToGHL(
+    business,
+    { name: name.trim(), email: email.trim() },
+    ndsParams,
+  ).catch((err: unknown) => {
+    console.error(
+      `[MaxGate GHL Push Failed] business=${slug} email=${email.trim()}`,
+      err instanceof Error ? err.message : err,
+    );
+  });
 
   // tok = sha256(hid + faskey) — faskey is loaded per-business from Supabase
   const tok = computeTok(ndsParams.hid, business.faskey);

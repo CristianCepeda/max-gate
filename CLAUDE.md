@@ -89,12 +89,12 @@ There are **two separate clients pointing at the same Supabase Postgres database
 
 ## Environment variables
 
-| Variable                               | Used in                                                                                                          |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | `lib/supabase.ts`                                                                                                |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | (available client-side, not currently used)                                                                      |
-| `SUPABASE_SECRET_KEY`                  | `lib/supabase.ts` — server only                                                                                  |
-| `GHL_PRIVATE_TOKEN`                    | `lib/ghl.ts` — server only; Private Integration token with `contacts.write` and `contacts/workflow.write` scopes |
+| Variable                               | Used in                                                                                                            |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`             | `lib/supabase.ts`                                                                                                  |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | (available client-side, not currently used)                                                                        |
+| `SUPABASE_SECRET_KEY`                  | `lib/supabase.ts` — server only                                                                                    |
+| `GHL_API_KEY`                          | `lib/ghl.ts` — server only; Private Integration token with `contacts.write` and `contacts/workflow.write` scopes   |
 | `SUPABASE_DATABASE_URL`                | `prisma/seed.ts` and Prisma CLI commands (`db:migrate`, `db:push`, `db:studio`); direct Postgres connection string |
 
 Copy `.env.local` and fill in real values. The `businesses` table in Supabase has RLS enabled; the secret key bypasses it. Prisma talks to Postgres directly via `SUPABASE_DATABASE_URL` and bypasses RLS by design.
