@@ -130,7 +130,12 @@ export default async function SuccessPage({ params }: SuccessPageProps) {
 
         <p className="mt-6 text-center text-xs text-zinc-600">
           Powered by{" "}
-          <span className="font-medium text-zinc-500">Max Marketing Firm</span>
+          <a
+            href="https://maxmarketingfirm.com/"
+            className="font-medium text-zinc-500 hover:text-zinc-300"
+          >
+            Max Marketing Firm
+          </a>
         </p>
       </div>
     </div>

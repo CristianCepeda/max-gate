@@ -49,6 +49,7 @@ export async function POST(request: Request) {
   let ndsParams;
   try {
     ndsParams = decodeFASParams(fas);
+    console.log(`[MaxGate] ndsParams=${JSON.stringify(ndsParams)}`);
   } catch (err) {
     console.error(`[MaxGate] FAS decode failed slug=${slug}`, err);
     return NextResponse.json(
@@ -71,16 +72,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Business not found" }, { status: 404 });
   }
 
-  pushToGHL(
-    business,
-    { name: name.trim(), email: email.trim() },
-    ndsParams,
-  ).catch((err: unknown) => {
-    console.error(
-      `[MaxGate GHL Push Failed] business=${slug} email=${email.trim()}`,
-      err instanceof Error ? err.message : err,
-    );
-  });
+  // pushToGHL(
+  //   business,
+  //   { name: name.trim(), email: email.trim() },
+  //   ndsParams,
+  // ).catch((err: unknown) => {
+  //   console.error(
+  //     `[MaxGate GHL Push Failed] business=${slug} email=${email.trim()}`,
+  //     err instanceof Error ? err.message : err,
+  //   );
+  // });
 
   // tok = sha256(hid + faskey) — faskey is loaded per-business from Supabase
   const tok = computeTok(ndsParams.hid, business.faskey);
@@ -91,9 +92,9 @@ export async function POST(request: Request) {
     `http://${ndsParams.gatewayaddress}/opennds_auth/` +
     `?tok=${tok}&redir=${encodeURIComponent(successUrl)}`;
 
-  // console.log(
-  //   `[MaxGate] redirectUrl slug=${slug} gatewayaddress=${ndsParams.gatewayaddress} url=${redirectUrl}`,
-  // );
+  console.log(
+    `[MaxGate] redirectUrl slug=${slug} gatewayaddress=${ndsParams.gatewayaddress} url=${redirectUrl}`,
+  );
 
   return NextResponse.json({ redirectUrl });
 }
