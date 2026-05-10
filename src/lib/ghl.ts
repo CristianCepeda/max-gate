@@ -94,26 +94,5 @@ export async function pushToGHL(
     contactId = contactData?.contact?.id ?? contactData?.id;
   }
 
-  // // Step 2: Trigger workflow if configured
-  // if (business.ghl_workflow_id && contactId) {
-  //   const workflowRes = await fetch(
-  //     `${GHL_API_BASE}/contacts/${contactId}/workflow/${business.ghl_workflow_id}`,
-  //     {
-  //       method: 'POST',
-  //       headers: {
-  //         Authorization: `Bearer ${apiKey}`,
-  //         Version: GHL_API_VERSION,
-  //       },
-  //     }
-  //   );
-
-  //   if (!workflowRes.ok) {
-  //     // Log but don't throw — the contact was already created successfully
-  //     console.error(
-  //       `[MaxGate GHL] Workflow trigger failed for contactId=${contactId} workflowId=${business.ghl_workflow_id} status=${workflowRes.status}`
-  //     );
-  //   }
-  // }
-
   return { success: true, contactId };
 }

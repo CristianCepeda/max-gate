@@ -10,7 +10,6 @@ export interface Business {
   redirect_url: string | null;
   ghl_location_id: string;
   ghl_tag: string;
-  ghl_workflow_id: string | null;
   router_mac: string | null;
   address: string | null;
   faskey: string;
