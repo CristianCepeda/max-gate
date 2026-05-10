@@ -21,6 +21,7 @@ model Business {
   ghl_tag         String   @default("")
   ghl_workflow_id String?
   router_mac      String?
+  address         String?
   faskey          String
   session_timeout Int      @default(3600)
   is_active       Boolean  @default(true)

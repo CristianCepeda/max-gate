@@ -12,6 +12,7 @@ export interface Business {
   ghl_tag: string;
   ghl_workflow_id: string | null;
   router_mac: string | null;
+  address: string | null;
   faskey: string;
   session_timeout: number;
   is_active: boolean;
