@@ -59,6 +59,16 @@ export function decodeFASParams(fas: string): OpenNDSParams {
 }
 
 /**
+ * Normalizes a MAC address for comparison: strips separators and lowercases.
+ * Accepts "AA:BB:CC:DD:EE:FF", "aa-bb-cc-dd-ee-ff", "aabbccddeeff", etc.
+ * Returns "" for input that doesn't contain 12 hex chars.
+ */
+export function normalizeMac(mac: string): string {
+  const stripped = mac.replace(/[^0-9a-fA-F]/g, "").toLowerCase();
+  return stripped.length === 12 ? stripped : "";
+}
+
+/**
  * Computes the auth token required by openNDS to grant WiFi access.
  *
  * tok = sha256(hid + faskey)

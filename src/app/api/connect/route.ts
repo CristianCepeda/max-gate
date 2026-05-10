@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getBusinessBySlug } from "@/lib/supabase";
-import { computeTok, decodeFASParams } from "@/lib/opennds";
+import { computeTok, decodeFASParams, normalizeMac } from "@/lib/opennds";
 import { pushToGHL } from "@/lib/ghl";
 import { isValidEmail } from "@/lib/utils";
 
@@ -70,6 +70,20 @@ export async function POST(request: Request) {
   const business = await getBusinessBySlug(slug);
   if (!business) {
     return NextResponse.json({ error: "Business not found" }, { status: 404 });
+  }
+
+  if (business.router_mac) {
+    const expected = normalizeMac(business.router_mac);
+    const actual = normalizeMac(ndsParams.gatewaymac);
+    if (!expected || expected !== actual) {
+      console.error(
+        `[MaxGate] router_mac mismatch slug=${slug} expected=${business.router_mac} actual=${ndsParams.gatewaymac}`,
+      );
+      return NextResponse.json(
+        { error: "Router verification failed" },
+        { status: 403 },
+      );
+    }
   }
 
   pushToGHL(
