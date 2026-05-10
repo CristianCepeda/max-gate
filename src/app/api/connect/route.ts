@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   let ndsParams;
   try {
     ndsParams = decodeFASParams(fas);
-    console.log(`[MaxGate] ndsParams=${JSON.stringify(ndsParams)}`);
+    // console.log(`[MaxGate] ndsParams=${JSON.stringify(ndsParams)}`);
   } catch (err) {
     console.error(`[MaxGate] FAS decode failed slug=${slug}`, err);
     return NextResponse.json(
@@ -92,9 +92,9 @@ export async function POST(request: Request) {
     `http://${ndsParams.gatewayaddress}/opennds_auth/` +
     `?tok=${tok}&redir=${encodeURIComponent(successUrl)}`;
 
-  console.log(
-    `[MaxGate] redirectUrl slug=${slug} gatewayaddress=${ndsParams.gatewayaddress} url=${redirectUrl}`,
-  );
+  // console.log(
+  //   `[MaxGate] redirectUrl slug=${slug} gatewayaddress=${ndsParams.gatewayaddress} url=${redirectUrl}`,
+  // );
 
   return NextResponse.json({ redirectUrl });
 }
