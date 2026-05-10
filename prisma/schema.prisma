@@ -19,9 +19,8 @@ model Business {
   redirect_url    String?
   ghl_location_id String
   ghl_tag         String   @default("")
-  ghl_workflow_id String?
-  router_mac      String?
   address         String?
+  router_mac      String?
   faskey          String
   session_timeout Int      @default(3600)
   is_active       Boolean  @default(true)

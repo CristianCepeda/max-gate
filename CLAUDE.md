@@ -19,8 +19,8 @@ npm run dev        # Start dev server on http://localhost:3000
 npm run build      # Runs `prisma generate && next build` (TypeScript checked here)
 npm run lint       # ESLint
 
-npm run db:migrate # prisma migrate dev (loads .env.local via dotenv-cli)
-npm run db:push    # prisma db push (loads .env.local via dotenv-cli)
+npm run db:migrate # prisma migrate dev (loads .env.local via the `dotenv` binary from the dotenv-cli package)
+npm run db:push    # prisma db push (loads .env.local via the `dotenv` binary from the dotenv-cli package)
 npm run db:seed    # Runs prisma/seed.ts via tsx
 npm run db:studio  # Opens Prisma Studio
 ```
@@ -35,8 +35,8 @@ The auth flow is:
 
 1. Router → `gate.maxmarketingfirm.com/{slug}?fas=<base64>` (splash page)
 2. Customer submits form → `POST /api/connect`
-3. API decodes the `fas` param, fires GHL push (async, non-blocking), computes `rhid = sha256(hid + faskey)`, returns `redirectUrl`
-4. Client browser → `http://{gatewayaddress}/{authdir}?rhid={rhid}&redir={successUrl}` (grants WiFi)
+3. API decodes the `fas` param, optionally verifies `gatewaymac` matches `business.router_mac`, fires GHL push (async, non-blocking), computes `tok = sha256(hid + faskey)`, returns `redirectUrl`
+4. Client browser → `http://{gatewayaddress}/opennds_auth/?tok={tok}&redir={successUrl}` (grants WiFi)
 5. Router redirects to `/{slug}/success`
 
 ## Architecture
@@ -77,25 +77,24 @@ There are **two separate clients pointing at the same Supabase Postgres database
 **`src/lib/`** — all server-side logic:
 
 - `supabase.ts` — service role client (bypasses RLS); `getBusinessBySlug(slug)` is the only query
-- `opennds.ts` — `decodeFASParams(fas)` base64-decodes the FAS string and parses key=value pairs; `computeRHID(hid, faskey)` computes `sha256(hid+faskey)` using Node.js `crypto` — this is security-critical for WiFi grant
-- `ghl.ts` — `pushToGHL()` upserts a GHL contact then optionally triggers a workflow; called fire-and-forget from the API route
+- `opennds.ts` — `decodeFASParams(fas)` base64-decodes the FAS string and parses key=value pairs; `computeTok(hid, faskey)` computes `sha256(hid+faskey)` using Node.js `crypto` — this is security-critical for WiFi grant; `normalizeMac(mac)` strips separators and lowercases for safe MAC comparison in the router-verification check
+- `ghl.ts` — `pushToGHL()` upserts a GHL contact via the V2 API and is called fire-and-forget from the API route. The optional workflow-trigger step is currently commented out and not used
 - `utils.ts` — `normalizePhone()` (→ E.164), `isValidEmail()`, `safeColor()`
 
 **`src/app/[slug]/page.tsx`** — SSR server component; fetches business by slug, renders `PortalLayout` + `CaptureForm`. Returns 404 if slug not found or inactive.
 
-**`src/app/api/connect/route.ts`** — The critical POST handler. Order of operations: decode FAS → load business → fire-and-forget GHL push → compute rhid → return `{ redirectUrl }`. WiFi grant must never be blocked by GHL failures.
+**`src/app/api/connect/route.ts`** — The critical POST handler. Order of operations: decode FAS → load business → (if `business.router_mac` is set) verify `gatewaymac` match else 403 → fire-and-forget GHL push → compute `tok` → return `{ redirectUrl }`. WiFi grant must never be blocked by GHL failures, but it MUST be blocked by a `router_mac` mismatch — that check runs before any GHL or token work for exactly this reason.
 
 **`src/components/CaptureForm.tsx`** — Client component (`"use client"`). Handles phone formatting, loading spinner, and the fetch to `/api/connect`. On success, does `window.location.href = data.redirectUrl`.
 
 ## Environment variables
 
-| Variable                               | Used in                                                                                                            |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_SUPABASE_URL`             | `lib/supabase.ts`                                                                                                  |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | (available client-side, not currently used)                                                                        |
-| `SUPABASE_SECRET_KEY`                  | `lib/supabase.ts` — server only                                                                                    |
-| `GHL_API_KEY`                          | `lib/ghl.ts` — server only; Private Integration token with `contacts.write` and `contacts/workflow.write` scopes   |
-| `SUPABASE_DATABASE_URL`                | `prisma/seed.ts` and Prisma CLI commands (`db:migrate`, `db:push`, `db:studio`); direct Postgres connection string |
+| Variable                   | Used in                                                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL` | `lib/supabase.ts`                                                                                                  |
+| `SUPABASE_SECRET_KEY`      | `lib/supabase.ts` — server only                                                                                    |
+| `GHL_API_KEY`              | `lib/ghl.ts` — server only; Private Integration token with `contacts.write` and `contacts/workflow.write` scopes   |
+| `SUPABASE_DATABASE_URL`    | `prisma/seed.ts` and Prisma CLI commands (`db:migrate`, `db:push`, `db:studio`); direct Postgres connection string |
 
 Copy `.env.local` and fill in real values. The `businesses` table in Supabase has RLS enabled; the secret key bypasses it. Prisma talks to Postgres directly via `SUPABASE_DATABASE_URL` and bypasses RLS by design.
 
@@ -104,9 +103,12 @@ Copy `.env.local` and fill in real values. The `businesses` table in Supabase ha
 The `businesses` table columns that matter most:
 
 - `slug` — URL identifier, used to look up portal config
-- `faskey` — combined with `hid` to compute `rhid`; must match the value configured on the router
+- `faskey` — combined with `hid` to compute the openNDS `tok`; must match the value configured on the router
 - `ghl_location_id` — required for GHL contact creation
-- `ghl_workflow_id` — optional; if set, triggers a GHL workflow after contact upsert
+- `router_mac` — optional; when set, the connect route requires the FAS-supplied `gatewaymac` to match (case- and separator-insensitive). Use the `br-lan` MAC of the router (not WAN). Leave NULL to disable verification for businesses you haven't onboarded yet.
+- `address` — optional free-form text; documentation only (where the router is physically installed). Not read by any runtime code.
+
+Note: the `Business` runtime type in `@/types/business` still includes `ghl_workflow_id`, but the column was dropped from `schema.prisma` and the workflow-trigger code in [src/lib/ghl.ts](src/lib/ghl.ts) is commented out. Treat workflow triggering as removed; clean up the runtime type next time you touch the file.
 
 Seed data for testing: [prisma/seed.ts](prisma/seed.ts) (run via `npm run db:seed`).
 
@@ -115,10 +117,12 @@ Seed data for testing: [prisma/seed.ts](prisma/seed.ts) (run via `npm run db:see
 Generate a fake FAS param:
 
 ```bash
-node -e "console.log(Buffer.from('hid=testhid123, clientip=192.168.8.100, clientmac=AA:BB:CC:DD:EE:FF, gatewayname=TestGW, gatewayaddress=192.168.8.1, authdir=opennds_auth, originurl=http://example.com, clientif=br-lan').toString('base64'))"
+node -e "console.log(Buffer.from('hid=testhid123, clientip=192.168.8.100, clientmac=AA:BB:CC:DD:EE:FF, gatewayname=TestGW, gatewayaddress=192.168.8.1, gatewaymac=11:22:33:44:55:66, authdir=opennds_auth, originurl=http://example.com, clientif=br-lan').toString('base64'))"
 ```
 
 Then visit: `http://localhost:3000/test-business?fas=<output>`
+
+If the test business has `router_mac` set in the DB, the `gatewaymac` value above must match it (after normalization) or the request will 403. The seeded `test-business` row has `router_mac` NULL, so verification is skipped and any `gatewaymac` value works.
 
 ## Captive portal constraints
 
