@@ -3,6 +3,7 @@ import { getBusinessBySlug, getSupabaseAdmin } from "@/lib/supabase/server";
 import { computeTok, decodeFASParams, normalizeMac } from "@/lib/opennds";
 import { pushToGHL } from "@/lib/ghl";
 import { isValidEmail } from "@/lib/utils";
+import { verifyEmailDeliverable } from "@/lib/email";
 
 const PORTAL_BASE = "https://gate.maxmarketingfirm.com";
 
@@ -32,11 +33,17 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!isValidEmail(email.trim())) {
+  const trimmedEmail = email.trim();
+  if (!isValidEmail(trimmedEmail)) {
     return NextResponse.json(
       { error: "Invalid email address" },
       { status: 400 },
     );
+  }
+
+  const deliverabilityError = await verifyEmailDeliverable(trimmedEmail);
+  if (deliverabilityError) {
+    return NextResponse.json({ error: deliverabilityError }, { status: 400 });
   }
 
   if (!fas) {
