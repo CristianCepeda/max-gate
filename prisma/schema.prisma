@@ -23,9 +23,12 @@ model Business {
   router_mac      String?
   faskey          String
   session_timeout Int      @default(3600)
-  is_active       Boolean  @default(true)
-  created_at      DateTime @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime @default(now()) @db.Timestamptz(6)
+  is_active         Boolean  @default(true)
+  owner_id          String?  @db.Uuid
+  total_connections Int      @default(0)
+  last_seen_at      DateTime? @db.Timestamptz(6)
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime @default(now()) @db.Timestamptz(6)
 
   @@map("businesses")
 }

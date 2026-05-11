@@ -8,7 +8,7 @@ let _supabaseAdmin: ReturnType<typeof createClient> | null = null;
 // public-read policy that exposes faskey — which grants WiFi access — to
 // anyone hitting PostgREST. This module is server-only; the key must never
 // reach the browser.
-function getSupabaseAdmin() {
+export function getSupabaseAdmin() {
   if (!_supabaseAdmin) {
     _supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
