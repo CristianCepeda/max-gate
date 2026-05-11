@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getBusinessBySlug } from '@/lib/supabase';
+import { getBusinessBySlug } from '@/lib/supabase/server';
 import PortalLayout from '@/components/PortalLayout';
 import CaptureForm from '@/components/CaptureForm';
 

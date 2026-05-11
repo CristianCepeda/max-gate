@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getBusinessBySlug, getSupabaseAdmin } from "@/lib/supabase";
+import { getBusinessBySlug, getSupabaseAdmin } from "@/lib/supabase/server";
 import { computeTok, decodeFASParams, normalizeMac } from "@/lib/opennds";
 import { pushToGHL } from "@/lib/ghl";
 import { isValidEmail } from "@/lib/utils";

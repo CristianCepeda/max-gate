@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createAuthClient } from "@/lib/supabase-server";
+import { createAuthClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Business } from "@/types/business";
 
