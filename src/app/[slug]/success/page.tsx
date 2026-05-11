@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { getBusinessBySlug } from "@/lib/supabase";
+import { getBusinessBySlug } from "@/lib/supabase/server";
 import { safeColor } from "@/lib/utils";
 
 interface SuccessPageProps {

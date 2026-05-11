@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getBusinessBySlug } from "@/lib/supabase";
+import { getBusinessBySlug, getSupabaseAdmin } from "@/lib/supabase/server";
 import { computeTok, decodeFASParams, normalizeMac } from "@/lib/opennds";
 import { pushToGHL } from "@/lib/ghl";
 import { isValidEmail } from "@/lib/utils";
@@ -100,15 +100,25 @@ export async function POST(request: Request) {
   // tok = sha256(hid + faskey) — faskey is loaded per-business from Supabase
   const tok = computeTok(ndsParams.hid, business.faskey);
 
+  // Fire-and-forget: increment connection counter (never blocks WiFi grant)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const table = getSupabaseAdmin().from("businesses") as any;
+  void Promise.resolve(
+    table
+      .update({ total_connections: business.total_connections + 1 })
+      .eq("id", business.id),
+  ).catch((err: unknown) => {
+    console.error(
+      `[MaxGate] Failed to increment total_connections slug=${slug}`,
+      err,
+    );
+  });
+
   // openNDS FAS level 1 grant URL: uses ?tok= and the /opennds_auth/ path
   const successUrl = `${PORTAL_BASE}/${slug}/success`;
   const redirectUrl =
     `http://${ndsParams.gatewayaddress}/opennds_auth/` +
     `?tok=${tok}&redir=${encodeURIComponent(successUrl)}`;
-
-  // console.log(
-  //   `[MaxGate] redirectUrl slug=${slug} gatewayaddress=${ndsParams.gatewayaddress} url=${redirectUrl}`,
-  // );
 
   return NextResponse.json({ redirectUrl });
 }

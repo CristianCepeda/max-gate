@@ -15,6 +15,9 @@ export interface Business {
   faskey: string;
   session_timeout: number;
   is_active: boolean;
+  owner_id: string | null;
+  total_connections: number;
+  last_seen_at: string | null;
   created_at: string;
   updated_at: string;
 }

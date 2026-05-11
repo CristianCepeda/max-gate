@@ -1,5 +1,35 @@
+import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 import type { Business } from "@/types/business";
+
+// SSR-aware Supabase client for server components and route handlers.
+// Uses the anon key so sessions are scoped to the authenticated user.
+// For service-role (bypass-RLS) reads, use getSupabaseAdmin below.
+export async function createAuthClient() {
+  const cookieStore = await cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options),
+            );
+          } catch {
+            // Silently ignored when called from a Server Component —
+            // the middleware refresh handles keeping the session alive.
+          }
+        },
+      },
+    },
+  );
+}
 
 let _supabaseAdmin: ReturnType<typeof createClient> | null = null;
 
@@ -8,7 +38,7 @@ let _supabaseAdmin: ReturnType<typeof createClient> | null = null;
 // public-read policy that exposes faskey — which grants WiFi access — to
 // anyone hitting PostgREST. This module is server-only; the key must never
 // reach the browser.
-function getSupabaseAdmin() {
+export function getSupabaseAdmin() {
   if (!_supabaseAdmin) {
     _supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
