@@ -14,8 +14,9 @@ export async function pushToGHL(
   leadData: LeadData,
   ndsParams: OpenNDSParams,
 ): Promise<{ success: boolean; contactId?: string }> {
-  const apiKey = process.env.GHL_API_KEY;
-  if (!apiKey) throw new Error("GHL_API_KEY is not set");
+  const apiKey = business.ghl_private_key;
+  if (!apiKey)
+    throw new Error(`GHL private key missing for business ${business.slug}`);
 
   const firstName = leadData.name.split(" ")[0];
   const lastName = leadData.name.split(" ").slice(1).join(" ") || "";

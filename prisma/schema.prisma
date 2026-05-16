@@ -19,6 +19,7 @@ model Business {
   redirect_url    String?
   ghl_location_id String
   ghl_tag         String   @default("")
+  ghl_private_key String?
   address         String?
   router_mac      String?
   faskey          String
